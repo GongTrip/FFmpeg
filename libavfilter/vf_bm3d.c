@@ -32,7 +32,6 @@
 
 #include <float.h>
 
-#include "libavutil/avassert.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/opt.h"
 #include "libavutil/pixdesc.h"
@@ -942,27 +941,19 @@ static av_cold int init(AVFilterContext *ctx)
     }
 
     pad.type         = AVMEDIA_TYPE_VIDEO;
-    pad.name         = av_strdup("source");
+    pad.name         = "source";
     pad.config_props = config_input;
-    if (!pad.name)
-        return AVERROR(ENOMEM);
 
-    if ((ret = ff_insert_inpad(ctx, 0, &pad)) < 0) {
-        av_freep(&pad.name);
+    if ((ret = ff_insert_inpad(ctx, 0, &pad)) < 0)
         return ret;
-    }
 
     if (s->ref) {
         pad.type         = AVMEDIA_TYPE_VIDEO;
-        pad.name         = av_strdup("reference");
+        pad.name         = "reference";
         pad.config_props = NULL;
-        if (!pad.name)
-            return AVERROR(ENOMEM);
 
-        if ((ret = ff_insert_inpad(ctx, 1, &pad)) < 0) {
-            av_freep(&pad.name);
+        if ((ret = ff_insert_inpad(ctx, 1, &pad)) < 0)
             return ret;
-        }
     }
 
     return 0;
@@ -1027,9 +1018,6 @@ static av_cold void uninit(AVFilterContext *ctx)
     BM3DContext *s = ctx->priv;
     int i;
 
-    for (i = 0; i < ctx->nb_inputs; i++)
-        av_freep(&ctx->input_pads[i].name);
-
     if (s->ref)
         ff_framesync_uninit(&s->fs);
 
@@ -1066,7 +1054,7 @@ static const AVFilterPad bm3d_outputs[] = {
     { NULL }
 };
 
-AVFilter ff_vf_bm3d = {
+const AVFilter ff_vf_bm3d = {
     .name          = "bm3d",
     .description   = NULL_IF_CONFIG_SMALL("Block-Matching 3D denoiser."),
     .priv_size     = sizeof(BM3DContext),

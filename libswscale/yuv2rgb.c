@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "libavutil/cpu.h"
 #include "libavutil/bswap.h"
 #include "config.h"
 #include "rgb2rgb.h"
@@ -793,7 +792,8 @@ av_cold int ff_yuv2rgb_c_init_tables(SwsContext *c, const int inv_table[4],
                         c->dstFormat == AV_PIX_FMT_NE(RGB444LE, RGB444BE) ||
                         c->dstFormat == AV_PIX_FMT_NE(BGR565LE, BGR565BE) ||
                         c->dstFormat == AV_PIX_FMT_NE(BGR555LE, BGR555BE) ||
-                        c->dstFormat == AV_PIX_FMT_NE(BGR444LE, BGR444BE);
+                        c->dstFormat == AV_PIX_FMT_NE(BGR444LE, BGR444BE) ||
+                        c->dstFormat == AV_PIX_FMT_NE(X2RGB10LE, X2RGB10BE);
     const int bpp = c->dstFormatBpp;
     uint8_t *y_table;
     uint16_t *y_table16;
@@ -981,6 +981,10 @@ av_cold int ff_yuv2rgb_c_init_tables(SwsContext *c, const int inv_table[4],
             y_table32[i + table_plane_size] = yval << gbase;
             y_table32[i + 2 * table_plane_size] = yval << bbase;
             yb += cy;
+        }
+        if (isNotNe) {
+            for (i = 0; i < table_plane_size * 3; i++)
+                y_table32[i] = av_bswap32(y_table32[i]);
         }
         fill_table(c->table_rV, 4, crv, y_table32 + yoffs);
         fill_table(c->table_gU, 4, cgu, y_table32 + yoffs + table_plane_size);
